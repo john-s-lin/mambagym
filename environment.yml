@@ -1,0 +1,16 @@
+name: mambagym
+channels:
+  - defaults
+  - conda-forge
+  - nvidia
+dependencies:
+  - pip
+  - python>=3.8.13
+  - cuda>=11.6
+  - pytorch>=2.2
+  - torchvision>=0.17
+  - pillow
+  - scipy
+  - tomopy
+  - pip:
+    - -r requirements.txt
