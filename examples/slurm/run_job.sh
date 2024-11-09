@@ -8,9 +8,6 @@
 #SBATCH --cpus-per-task=4            # Number of CPU cores per task
 #SBATCH --mem=8GB                    # Memory limit
 
-# Load Python module
-module load python/3.9
-
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
