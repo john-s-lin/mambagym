@@ -1,0 +1,5 @@
+This is line 1 of the input file.
+Here is line 2 with some numbers 123.
+Line 3 contains MIXED case text.
+Line 4 has special chars: !@#$
+Final line 5 for testing.
