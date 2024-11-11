@@ -1,3 +1,15 @@
 {
-  "recommendations": []
+  "recommendations": [
+    "njpwerner.autodocstring",
+    "tamasfe.even-better-toml",
+    "eamodio.gitlens",
+    "VisualStudioExptTeam.vscodeintellicode",
+    "ms-python.isort",
+    "ms-python.vscode-pylance",
+    "ms-python.python",
+    "ms-python.debugpy",
+    "mechatroner.rainbow-csv",
+    "charliermarsh.ruff",
+    "redhat.vscode-yaml"
+  ]
 }
