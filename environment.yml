@@ -1,16 +1,21 @@
 name: mambagym
 channels:
-  - defaults
+  - default
+  - pytorch
   - conda-forge
   - nvidia
+  - astra-toolbox/label/dev
 dependencies:
   - pip
+  - numpy=1.24
   - python>=3.8.13
-  - cuda>=11.6
-  - pytorch>=2.2
-  - torchvision>=0.17
+  - pytorch==2.2.0 
+  - torchvision==0.17.0 
+  - torchaudio==2.2.0 
+  - pytorch-cuda=12.1
   - pillow
+  - matplotlib
   - scipy
-  - tomopy
+  - astra-toolbox
   - pip:
-    - -r requirements.txt
+    - https://github.com/jleuschn/dival.git@master
