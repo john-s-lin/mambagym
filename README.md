@@ -2,6 +2,10 @@
 
 Optimizing priors for denoising low-dose CT
 
+## Remote development with SSH (recommended)
+
+For info on how to develop remotely on SSH with `vscode`, refer to [`/docs/remote_dev.md`](./docs/remote_dev.md).
+
 ## Environment setup
 
 ```
