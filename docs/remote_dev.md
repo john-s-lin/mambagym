@@ -14,7 +14,7 @@ However, it is not without drawbacks, which include:
 
 ### Destinations
 
-In the `comps[0-3].cs.toronto.edu` servers, you will not have enough space to install `conda` and the required packages for this project. Rather, you will have to install `conda` in a location with a lot more disk space.
+In the `comps[0-3].cs.toronto.edu` servers, you may not have enough space to install `conda` _and_ the required packages for this project in your home directory. You can install `conda` in your home directory, but you will have to set a special prefix to install the `mambagym` environment in a `/w/` directory with more space.
 
 These directories should be available:
 
@@ -31,3 +31,9 @@ For this example, let's say we'll use the directory `/w/383/<your-cs-toronto-use
 ### Install `miniforge` for `conda`
 
 Here we'll use the [`miniforge`](https://github.com/conda-forge/miniforge) installation. `miniforge` is a minimal instance of `Anaconda`, with the default channel being `conda-forge`. Additionally, `mamba`, the faster dependency resolver for `conda`, touted as a drop-in replacement, has been deprecated since the resolver has been integrated into `miniconda` and `miniforge` directly since [Release 23.10.0](https://docs.conda.io/projects/conda/en/latest/release-notes.html#with-this-23-10-0-release-we-are-changing-the-default-solver-of-conda-to-conda-libmamba-solver) [[Ref.](https://conda-forge.org/news/2024/07/29/sunsetting-mambaforge/)].
+
+If `conda` is not installed yet, you can install the `miniforge3` version in your home directory.
+
+```bash
+
+```
