@@ -18,4 +18,5 @@ dependencies:
   - scipy
   - astra-toolbox
   - pip:
+    - -r requirements.txt
     - https://github.com/jleuschn/dival.git@master
