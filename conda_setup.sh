@@ -12,6 +12,10 @@
 
 mkdir -p logs
 
-conda env create -f environment.yml -p "/w/383/${USER}/conda_envs/mambagym" -v -y
+if conda info --envs | grep -q mambagym; then
+    echo "mambagym already exists"
+else
+    conda env create -f environment.yml -p "/w/383/${USER}/conda_envs/mambagym" -v -y
+fi
 
 exit 0
