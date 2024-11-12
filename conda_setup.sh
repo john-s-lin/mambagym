@@ -35,7 +35,7 @@ fi
 if conda info --envs | grep -q mambagym; then
     echo "mambagym already exists"
 else
-    conda env create -f environment.yml -p "${TARGET_DIR_PREFIX}/${USER}/conda_envs/mambagym" -v -y
+    conda env create -f environment.yml -p "${TARGET_DIR_PREFIX}/conda_envs/mambagym" -v -y
 fi
 
 exit 0
