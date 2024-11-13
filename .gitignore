@@ -163,9 +163,5 @@ cython_debug/
 
 # Project specific
 examples/**/logs
-<<<<<<< HEAD
 *.out
 *.pkl
-=======
-logs/
->>>>>>> 3df8e4a (patch: ignore logs)

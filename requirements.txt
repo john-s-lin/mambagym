@@ -1,11 +1,7 @@
 # For dependencies not available via conda
 
-<<<<<<< HEAD
-mamba-ssm[causal-conv1d] # Ref: https://github.com/state-spaces/mamba?tab=readme-ov-file#installation
-dival @ git+https://github.com/jleuschn/dival@448b453a26528d971bd87046cddecc01a7ede983 # Latest commit 2024-11-12, Ref: https://stackoverflow.com/questions/16584552/how-to-state-in-requirements-txt-a-direct-github-source
+# Ref: https://github.com/state-spaces/mamba?tab=readme-ov-file#installation
+mamba-ssm[causal-conv1d] 
+# Latest commit 2024-11-12, Ref: https://stackoverflow.com/questions/16584552/how-to-state-in-requirements-txt-a-direct-github-source
+dival @ git+https://github.com/jleuschn/dival@448b453a26528d971bd87046cddecc01a7ede983
 timm
-=======
-# Ref: https://github.com/state-spaces/mamba/blob/442fab4b1fd5226c1b5939b37d91ede430b5d1ae/README.md?plain=1#L24
-mamba-ssm[causal-conv1d]
-dival
->>>>>>> 90aec0e (feat: add setup script using sbatch)
