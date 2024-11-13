@@ -59,3 +59,13 @@ In the root of your `mambagym` repo, edit `conda_setup.sh` to set your `TARGET_D
 # /w/383 can be any one of the directories above in 0. Destinations
 TARGET_DIR_PREFIX="/w/383/${USER}"
 ```
+
+Once your `TARGET_DIR_PREFIX` is set, you can run `conda_setup.sh` with `slurm` using `sbatch`.
+
+```bash
+sbatch conda_setup.sh
+```
+
+It should return a `job-id`, which you can monitor progress for in the `/logs` directory, looking at `<job-id>.log` for logs or `<job-id>.err` for errors.
+
+> **NOTE**: the installation of the various packages for your conda environment will take up to 30 minutes, depending on circumstances.
