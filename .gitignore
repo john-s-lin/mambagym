@@ -163,3 +163,5 @@ cython_debug/
 
 # Project specific
 examples/**/logs
+*.out
+*.pkl

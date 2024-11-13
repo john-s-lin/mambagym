@@ -1,4 +1,4 @@
 # For dependencies not available via conda
-causal-conv1d>=1.4.0
 mamba-ssm
-dival
+causal_conv1d
+timm
