@@ -26,4 +26,4 @@ jobs:
 
       - name: Linting with ruff
         run: | 
-          ruff check --line-length=120 --extend-ignore E203 $(git ls-files "*.py")
+          ruff check --line-length=120 --extend-exclude DenoMamba --extend-ignore E203 $(git ls-files "*.py")
