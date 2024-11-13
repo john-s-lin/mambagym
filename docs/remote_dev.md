@@ -69,3 +69,55 @@ sbatch conda_setup.sh
 It should return a `job-id`, which you can monitor progress for in the `/logs` directory, looking at `<job-id>.log` for logs or `<job-id>.err` for errors.
 
 > **NOTE**: the installation of the various packages for your conda environment will take up to 30 minutes, depending on circumstances.
+
+### 4. Use `VSCode` to access your remote development environment
+
+In VSCode, make sure you have the `Remote - SSH (id.: ms-vscode-remote.remote-ssh)` and `Remote Explorer (id.: ms-vscode.remote-explorer)` extensions enabled.
+
+Then in the sidebar, click on the `Remote Explorer` tab and ensure the dropdown menu at the top refers to `Remotes (Tunnels/SSH)`.
+
+![remote-sidebar](./assets/01_remote_sidebar.png)
+
+Next to the `SSH` header, click on the `+` sign to add a new remote destination.
+
+![remote-add-ssh](./assets/02_remote_add_ssh.png)
+
+At the top search bar on `VSCode` you will see a pop-up command to enter an SSH tunnel
+
+![ssh-connect](./assets/03_ssh_add_connection.png)
+
+Enter an SSH command to a `comps[0-3].cs.toronto.edu` server with your `cs.toronto.edu` username.
+
+```bash
+ssh <your-cs-toronto-username>@comps0.cs.toronto.edu
+```
+
+Then connect to your `SSH` tunnel in a new window.
+
+![ssh-new-window](./assets/04_ssh_connect_new_window.png)
+
+At the top of the new `VSCode` window, you will be prompted to enter your password.
+
+![ssh-password](./assets/05_ssh_password.png)
+
+Congrats! Now you are connected to a remote instance of `VSCode` running on a remote server.
+
+In the new window, click `Open` to open a prompt to go to your target directory, in this case, `/w/383/<your-cs-toronto-username>/mambagym`, where `/w/383` can be any of the directories listed in [0. Destinations](#0-destinations) above.
+
+![ssh-new-window](./assets/06_open_repo.png)
+
+Enter the absolute location of your target directory.
+
+![ssh-open-target-dir](./assets/07_goto_dir.png)
+
+Click `OK`, then you will be prompted with your password once again.
+
+![ssh-target-dir-pw](./assets/08_password_target_dir.png)
+
+Once complete, you should have direct access to the target directory for next time in your `Remote Explorer` sidebar.
+
+![direct-target-access-dir](./assets/09_direct_access_target.png)
+
+## Running HPC programs on `slurm`
+
+By now, it should be easy for you to run your ML scripts with `slurm`. The easiest and most-reproducible way is to create a `bash` script in the root directory of this repository, activate your `conda` environment, either within the script or outside of it, then run `sbatch your-script.sh`. For more information, refer to [`docs/slurm.md`](./slurm.md).
