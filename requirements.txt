@@ -1,4 +1,4 @@
 # For dependencies not available via conda
-mamba-ssm
+mamba-ssm==1.1.4
 causal_conv1d
 timm
