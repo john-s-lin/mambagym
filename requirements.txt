@@ -1,7 +1,4 @@
 # For dependencies not available via conda
-
-# Ref: https://github.com/state-spaces/mamba?tab=readme-ov-file#installation
-mamba-ssm[causal-conv1d] 
-# Latest commit 2024-11-12, Ref: https://stackoverflow.com/questions/16584552/how-to-state-in-requirements-txt-a-direct-github-source
-dival @ git+https://github.com/jleuschn/dival@448b453a26528d971bd87046cddecc01a7ede983
+mamba-ssm==1.1.4
+causal_conv1d
 timm
