@@ -30,7 +30,7 @@ def init_deno_mamba(weights_path, in_ch=1, out_ch=1, dim=48, num_blocks=(4, 6, 6
     return model
 
 if __name__ == "__main__":
-    dataset = dival.datasets.get_standard_dataset('lodopab', impl='astra_cpu')
+    dataset = dival.datasets.get_standard_dataset('lodopab')
     data = dataset.create_torch_dataset(part='train')
     data = Subset(data, indices=range(200))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     with torch.no_grad():
         for batch_number, (sino, gt) in tqdm(enumerate(data)):
-            reconstruction = admm_ldct(originial_transform, originial_transform.adjoint, sino, 1.0, (362, 362), denoise_resolution=(362, 362), model=denoiser, num_iters=5)
+            reconstruction = admm_ldct(originial_transform, originial_transform.adjoint, sino, 0.1, (362, 362), denoise_resolution=(512, 512), model=denoiser, num_iters=75)
             _psnr = psnr(gt.numpy(), reconstruction)
             _ssim = ssim(gt.numpy(), reconstruction, data_range=np.max(gt.numpy()) - np.min(gt.numpy()))
             _rmse = rmse(gt.numpy(), reconstruction)
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 axes[0].imshow(reconstruction, cmap='gray')
                 axes[0].set_title('Reconstruction')
                 axes[0].axis('off')
-                psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\RMSE:: {_rmse:.4f}"
+                psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\nRMSE:: {_rmse:.4f}"
                 axes[0].text(
                     0.05, 0.05, psnr_ssim_text,
                     transform=axes[0].transAxes,
@@ -68,14 +68,14 @@ if __name__ == "__main__":
                 axes[1].imshow(gt.numpy(), cmap='gray')
                 axes[1].set_title('Ground Truth')
                 axes[1].axis('off')
-                output_path = f"plots/wavelet/img_{batch_number}_comparison_{timestamp}.png"
+                output_path = f"plots/admm_denomamba/img_{batch_number}_comparison_{timestamp}.png"
                 plt.tight_layout()
                 plt.savefig(output_path, dpi=300, bbox_inches='tight')
                 plt.close(fig)
-                plt.imsave(f"plots/admm_dncnn/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction)
+                plt.imsave(f"plots/admm_denomamba/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction)
     print(np.mean(psnrs))
     print(np.mean(ssims))
     print(np.mean(rmses))
-    np.save(f"plots/admm_dncnn/psnrs_{timestamp}.npy",np.array(psnrs))
-    np.save(f"plots/admm_dncnn/ssims_{timestamp}.npy",np.array(ssims))
-    np.save(f"plots/admm_dncnn/rmses_{timestamp}.npy",np.array(rmses))
+    np.save(f"plots/admm_denomamba/psnrs_{timestamp}.npy",np.array(psnrs))
+    np.save(f"plots/admm_denomamba/ssims_{timestamp}.npy",np.array(ssims))
+    np.save(f"plots/admm_denomamba/rmses_{timestamp}.npy",np.array(rmses))

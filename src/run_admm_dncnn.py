@@ -14,10 +14,10 @@ from models.dncnn.network_dncnn import DnCNN as net
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
-    dataset = dival.datasets.get_standard_dataset('lodopab', impl='astra_cpu')
+    dataset = dival.datasets.get_standard_dataset('lodopab')
     data = dataset.create_torch_dataset(part='train')
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    data = Subset(data, indices=range(1))
+    data = Subset(data, indices=range(200))
     originial_transform = dataset.ray_trafo
     reco_space = originial_transform.domain
     geometry = originial_transform.geometry
@@ -27,11 +27,12 @@ if __name__ == "__main__":
     rmses = []
     denoiser = net(in_nc=1, out_nc=1, nc=64, nb=17, act_mode='R')
     denoiser.load_state_dict(torch.load('/u/yukthiw/files/mambagym/src/models/dncnn/dncnn_25.pth'), strict=True)
+    denoiser.to(device)
     denoiser.eval()
 
     with torch.no_grad():
         for batch_number, (sino, gt) in tqdm(enumerate(data)):
-            reconstruction = admm_ldct(originial_transform, originial_transform.adjoint, sino, 1.0, (362, 362), denoise_resolution=(362, 362), model=denoiser, num_iters=75)
+            reconstruction = admm_ldct(originial_transform, originial_transform.adjoint, sino, 5.0, (362, 362), denoise_resolution=(362, 362), model=denoiser, num_iters=75)
             _psnr = psnr(gt.numpy(), reconstruction)
             _ssim = ssim(gt.numpy(), reconstruction, data_range=np.max(gt.numpy()) - np.min(gt.numpy()))
             _rmse = rmse(gt.numpy(), reconstruction)
@@ -53,7 +54,7 @@ if __name__ == "__main__":
                 axes[1].imshow(gt.numpy(), cmap='gray')
                 axes[1].set_title('Ground Truth')
                 axes[1].axis('off')
-                output_path = f"plots/img_{batch_number}_comparison_{timestamp}.png"
+                output_path = f"plots/admm_dncnn/img_{batch_number}_comparison_{timestamp}.png"
                 plt.tight_layout()
                 plt.savefig(output_path, dpi=300, bbox_inches='tight')
                 plt.close(fig)
