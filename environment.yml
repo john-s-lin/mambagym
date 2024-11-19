@@ -4,6 +4,7 @@ channels:
   - pytorch
   - conda-forge
   - nvidia
+  - tomopy
   - astra-toolbox/label/dev
 dependencies:
   - pip
@@ -15,8 +16,10 @@ dependencies:
   - pytorch-cuda=12.1
   - pillow
   - matplotlib
+  - tomopy
   - scipy
   - astra-toolbox
   - pip:
     - -r requirements.txt
-    - https://github.com/jleuschn/dival.git@master
+    - https://github.com/Yukthiw/dival/archive/master.zip
+    - https://github.com/odlgroup/odl/archive/master.zip
