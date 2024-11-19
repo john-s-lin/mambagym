@@ -10,10 +10,10 @@ from torch.utils.data import Subset
 from admm_denomamba import admm_ldct 
 import torch
 from datetime import datetime
+from models.DenoMamba.denomamba_arch import DenoMamba
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-from models.DenoMamba.denomamba_arch import DenoMamba
 
 def init_deno_mamba(weights_path, in_ch=1, out_ch=1, dim=48, num_blocks=(4, 6, 6, 8), num_refinement_blocks=2):
     model = DenoMamba(
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                 axes[1].imshow(gt.numpy(), cmap='gray')
                 axes[1].set_title('Ground Truth')
                 axes[1].axis('off')
-                output_path = f"plots/img_{batch_number}_comparison_{timestamp}.png"
+                output_path = f"plots/wavelet/img_{batch_number}_comparison_{timestamp}.png"
                 plt.tight_layout()
                 plt.savefig(output_path, dpi=300, bbox_inches='tight')
                 plt.close(fig)

@@ -9,9 +9,9 @@ from torch.utils.data import Subset
 from admm_denomamba import admm_ldct 
 from datetime import datetime
 import torch
+from models.dncnn.network_dncnn import DnCNN as net
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-from models.dncnn.network_dncnn import DnCNN as net
 
 if __name__ == "__main__":
     dataset = dival.datasets.get_standard_dataset('lodopab', impl='astra_cpu')

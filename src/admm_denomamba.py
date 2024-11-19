@@ -1,11 +1,11 @@
 import numpy as np
-import odl
 import torch
 from tqdm import tqdm
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 from scipy.sparse.linalg import cg, LinearOperator
 import matplotlib.pyplot as plt
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 def admm_ldct(forward, adjoint, sino, rho, imageResolution, denoise_resolution, model, num_iters=75):
 
