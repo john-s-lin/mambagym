@@ -6,19 +6,13 @@ from skimage.metrics import normalized_root_mse as rmse
 
 import numpy as np
 from tqdm import tqdm
-from datetime import datetime
-import odl
 from torch.utils.data import Subset
+from src.admm import admm_tv 
+import torch
+from datetime import datetime
 
-def sart(sinogram, ray_geometry, recon_space, n_iter=10, omega=100):
-    angles = ray_geometry.angles
-    ray_transforms = [odl.tomo.RayTransform(reco_space, geometry[i:i+1])
-              for i in range(len(angles))]
-    x = recon_space.zero()
-    sinograms = [sinogram[i, :][np.newaxis, :] for i in range(len(angles))]
 
-    odl.solvers.kaczmarz(ray_transforms, x, sinograms, niter=n_iter, omega=omega)
-    return x
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
     dataset = dival.datasets.get_standard_dataset('lodopab')
@@ -33,9 +27,8 @@ if __name__ == "__main__":
     psnrs = []
     ssims = []
     rmses = []
-
     for batch_number, (sino, gt) in tqdm(enumerate(data)):
-        reconstruction = sart(sino.numpy(), geometry, reco_space, n_iter=100, omega=1).asarray()
+        reconstruction = admm_tv(originial_transform, originial_transform.adjoint, sino,  1.0, 1e-5, (362, 362), num_iters=75)
         _psnr = psnr(gt.numpy(), reconstruction)
         _ssim = ssim(gt.numpy(), reconstruction, data_range=np.max(gt.numpy()) - np.min(gt.numpy()))
         _rmse = rmse(gt.numpy(), reconstruction)
@@ -57,14 +50,14 @@ if __name__ == "__main__":
             axes[1].imshow(gt.numpy(), cmap='gray')
             axes[1].set_title('Ground Truth')
             axes[1].axis('off')
-            output_path = f"plots/sart/img_{batch_number}_comparison_{timestamp}.png"
+            output_path = f"plots/admm_tv/img_{batch_number}_comparison_{timestamp}.png"
             plt.tight_layout()
             plt.savefig(output_path, dpi=300, bbox_inches='tight')
             plt.close(fig)
-            plt.imsave(f"plots/sart/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction)
+            plt.imsave(f"plots/admm_tv/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction)
     print(np.mean(psnrs))
     print(np.mean(ssims))
     print(np.mean(rmses))
-    np.save(f"plots/sart/psnrs_{timestamp}.npy",np.array(psnrs))
-    np.save(f"plots/sart/ssims_{timestamp}.npy",np.array(ssims))
-    np.save(f"plots/sart/rmses_{timestamp}.npy",np.array(rmses))
+    np.save(f"plots/admm_tv/psnrs_{timestamp}.npy",np.array(psnrs))
+    np.save(f"plots/admm_tv/ssims_{timestamp}.npy",np.array(ssims))
+    np.save(f"plots/admm_tv/rmses_{timestamp}.npy",np.array(rmses))
