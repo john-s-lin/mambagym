@@ -162,6 +162,8 @@ cython_debug/
 #.idea/
 
 # Project specific
+data/
+logs/
 examples/**/logs
 *.out
 *.pkl
