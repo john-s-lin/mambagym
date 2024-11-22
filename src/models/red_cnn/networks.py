@@ -4,11 +4,11 @@ import torch.nn as nn
 class RED_CNN(nn.Module):
     def __init__(self, out_ch=96):
         super(RED_CNN, self).__init__()
-        self.conv1 = nn.Conv2D(1, out_ch, kernel_size=5, stride=1, padding=0)
-        self.conv2 = nn.Conv2D(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
-        self.conv3 = nn.Conv2D(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
-        self.conv4 = nn.Conv2D(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
-        self.conv5 = nn.Conv2D(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
+        self.conv1 = nn.Conv2d(1, out_ch, kernel_size=5, stride=1, padding=0)
+        self.conv2 = nn.Conv2d(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
+        self.conv3 = nn.Conv2d(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
+        self.conv4 = nn.Conv2d(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
+        self.conv5 = nn.Conv2d(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
 
         self.tconv1 = nn.ConvTranspose2d(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
         self.tconv2 = nn.ConvTranspose2d(out_ch, out_ch, kernel_size=5, stride=1, padding=0)
