@@ -2,11 +2,8 @@ import argparse
 import os
 import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from matplotlib import gridspec
-from tqdm import tqdm
 
 # Add root directory to Python path
 # TODO this is a hack, don't do this
@@ -17,23 +14,7 @@ sys.path.append(root_dir)
 # TODO move to utils folder? This will cause Ruff to complain
 from DenoMamba.data import create_loaders_mix
 from DenoMamba.options import TrainOptions
-from models.red_cnn.networks import RED_CNN
 from models.red_cnn.solver import Solver
-
-
-def get_pixel_loss(target: torch.Tensor, prediction: torch.Tensor) -> torch.Tensor:
-    return torch.nn.functional.l1_loss(target, prediction)
-
-
-def calculate_psnr(original: torch.Tensor, reconstructed: torch.Tensor) -> float | int:
-    mse = torch.nn.functional.mse_loss(original, reconstructed)
-    if mse == 0:
-        return float("inf")
-
-    max_pixel_value = 1
-
-    psnr = 20 * torch.log10(max_pixel_value / torch.sqrt(mse))
-    return psnr.item()
 
 
 def main():
