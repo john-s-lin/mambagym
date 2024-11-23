@@ -33,6 +33,6 @@ else
 fi
 
 python src/train_red_cnn.py --full_dose_path="${FULL_DOSE_PATH}" --quarter_dose_path="${QUARTER_DOSE_PATH}" \
-    --path_to_save="./out/"
+    --path_to_save="./src/models/red_cnn/checkpoints"
 
 exit 0
