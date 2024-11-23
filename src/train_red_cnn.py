@@ -1,6 +1,8 @@
 import argparse
 import os
+import re
 import sys
+from typing import Tuple
 
 import numpy as np
 import torch
@@ -15,6 +17,31 @@ sys.path.append(root_dir)
 from DenoMamba.data import create_loaders_mix
 from DenoMamba.options import TrainOptions
 from models.red_cnn.solver import Solver
+
+
+def get_latest_checkpoint(checkpoint_dir: str, min_iterations: int = None) -> Tuple[bool, int | None, str | None]:
+    pattern = r"REDCNN_(\d+)iter.ckpt"
+    checkpoints = []
+
+    if not os.path.exists(checkpoint_dir):
+        return False, None, None
+
+    for filename in os.listdir(checkpoint_dir):
+        match_name = re.match(pattern, filename)
+        if match_name:
+            iter_num = int(match_name.group[1])
+            checkpoints.append((iter_num, filename))
+
+    if not checkpoints:
+        return False, None, None
+
+    latest_iter, latest_file = max(checkpoints, key=lambda x: x[0])
+    latest_path = os.path.join(checkpoint_dir, latest_file)
+
+    if min_iterations is not None and latest_iter < min_iterations:
+        return False, latest_iter, latest_path
+
+    return True, latest_iter, latest_path
 
 
 def main():
@@ -65,7 +92,28 @@ def main():
     )
 
     red_cnn_solver = Solver(solver_args, trainloader)
-    red_cnn_solver.train()
+
+    min_iterations = solver_args.num_epochs * len(trainloader)
+
+    is_trained, latest_iter, latest_checkpoint = get_latest_checkpoint(
+        checkpoint_dir=solver_args.save_path, min_iterations=min_iterations
+    )
+
+    if is_trained:
+        print(f"Found existing model at iteration {latest_iter}. Loading checkpoint...")
+        red_cnn_solver.load_model(latest_iter)
+    else:
+        if latest_checkpoint:
+            print(f"Found partial training checkpoint at iteration {latest_iter}. Resuming training...")
+            red_cnn_solver.load_model(latest_iter)
+        else:
+            print("No existing checkpoints found. Starting training from scratch...")
+        red_cnn_solver.train()
+
+    # Change the data_loader to validloader and test to validate
+    print("Running validation...")
+    red_cnn_solver.data_loader = validloader
+    red_cnn_solver.test()
 
 
 if __name__ == "__main__":
