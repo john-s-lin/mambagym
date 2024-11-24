@@ -2,7 +2,6 @@ import argparse
 import os
 import re
 import sys
-from typing import Tuple
 
 import numpy as np
 import torch
@@ -19,7 +18,7 @@ from DenoMamba.options import TrainOptions
 from models.red_cnn.solver import Solver
 
 
-def get_latest_checkpoint(checkpoint_dir: str, min_iterations: int = None) -> Tuple[bool, int | None, str | None]:
+def get_latest_checkpoint(checkpoint_dir: str, min_iterations: int = None) -> tuple[bool, int | None, str | None]:
     pattern = r"REDCNN_(\d+)iter.ckpt"
     checkpoints = []
 
