@@ -167,3 +167,4 @@ logs/
 examples/**/logs
 *.out
 *.pkl
+src/models/**/checkpoints
