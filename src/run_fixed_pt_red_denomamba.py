@@ -30,7 +30,7 @@ def init_deno_mamba(weights_path, in_ch=1, out_ch=1, dim=48, num_blocks=(4, 6, 6
 if __name__ == "__main__":
     dataset = dival.datasets.get_standard_dataset('lodopab')
     data = dataset.create_torch_dataset(part='train')
-    data = Subset(data, indices=range(200))
+    data = Subset(data, indices=range(10))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     original_transform = dataset.ray_trafo
@@ -91,7 +91,7 @@ if __name__ == "__main__":
                 plt.close(fig)
                 
                 plt.imsave(f"plots/fixed_point_denomamba_red/img_{batch_number}_reconstruction_{timestamp}.png", 
-                          reconstruction)
+                          reconstruction, cmap='gray')
                 
     print(f"Average PSNR: {np.mean(psnrs):.2f}")
     print(f"Average SSIM: {np.mean(ssims):.4f}")
