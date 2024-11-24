@@ -30,7 +30,7 @@ def init_deno_mamba(weights_path, in_ch=1, out_ch=1, dim=48, num_blocks=(4, 6, 6
 if __name__ == "__main__":
     dataset = dival.datasets.get_standard_dataset('lodopab')
     data = dataset.create_torch_dataset(part='train')
-    data = Subset(data, indices=range(10))
+    data = Subset(data, indices=range(200))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     original_transform = dataset.ray_trafo
