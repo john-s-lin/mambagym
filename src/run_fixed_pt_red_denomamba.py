@@ -42,7 +42,7 @@ if __name__ == "__main__":
     ssims = []
     rmses = []
     
-    denoiser = init_deno_mamba(weights_path="/u/yukthiw/files/mambagym/DenoMamba/checkpoints/model_epoch_60.pkl")
+    denoiser = init_deno_mamba(weights_path="/w/331/yukthiw/checkpoints/model_epoch_60.pkl")
 
     with torch.no_grad():
         for batch_number, (sino, gt) in tqdm(enumerate(data)):
@@ -50,9 +50,9 @@ if __name__ == "__main__":
                 original_transform, 
                 original_transform.adjoint,
                 sino,
-                sigma=1.0,  # Adjust these parameters as needed
+                sigma=0.1,
                 lam=0.1,
-                imageResolution=(362, 362),
+                image_resolution=(362, 362),
                 denoise_resolution=(512, 512),
                 model=denoiser,
                 num_iters=50,

@@ -5,11 +5,11 @@ from scipy.sparse.linalg import cg, LinearOperator
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def fixed_point_ldct_red(forward, adjoint, sino, sigma, lam, image_resolution, denoise_resolution, model, num_iters=50, inner_iters=25):
+def fixed_point_ldct_red(forward, adjoint, sino, sigma, lam, image_resolution, 
+                         denoise_resolution, model, num_iters=50, inner_iters=25):
     """
     Fixed-point strategy for RED 
     """
-    # Initialize solution
     x = np.zeros(image_resolution)
     model.eval()
     img_size = np.prod(image_resolution)
@@ -47,7 +47,7 @@ def fixed_point_ldct_red(forward, adjoint, sino, sigma, lam, image_resolution, d
             
             x_flat, _ = cg(a_op, b_flat, x0=x.flatten(), 
                           maxiter=inner_iters, 
-                          tol=1e-12)
+                          rtol=1e-12)
             
             x = x_flat.reshape(image_resolution)
             
