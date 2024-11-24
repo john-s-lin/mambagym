@@ -126,7 +126,7 @@ def main():
                 0.1,
                 (362, 362),
                 denoise_resolution=(512, 512),
-                model=red_cnn_model,
+                model=red_cnn_model.REDCNN,
                 num_iters=50,
                 num_denoise_steps=5,
             )
