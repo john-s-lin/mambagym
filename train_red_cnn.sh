@@ -3,7 +3,7 @@
 #SBATCH --job-name=train_red_cnn
 #SBATCH --output=logs/%j.log
 #SBATCH --error=logs/%j.err
-#SBATCH --time=02:00:00
+#SBATCH --time=12:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=32GB
