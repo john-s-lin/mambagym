@@ -28,7 +28,7 @@ def get_latest_checkpoint(checkpoint_dir: str, min_iterations: int = None) -> tu
     for filename in os.listdir(checkpoint_dir):
         match_name = re.match(pattern, filename)
         if match_name:
-            iter_num = int(match_name.group[1])
+            iter_num = int(match_name.group(1))
             checkpoints.append((iter_num, filename))
 
     if not checkpoints:
