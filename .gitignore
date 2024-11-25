@@ -167,3 +167,5 @@ logs/
 examples/**/logs
 *.out
 *.pkl
+
+DenoMamba/inference_output/

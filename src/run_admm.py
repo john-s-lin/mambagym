@@ -7,7 +7,7 @@ from skimage.metrics import normalized_root_mse as rmse
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import Subset
-from admm_denomamba import admm_ldct 
+from admm import admm_ldct 
 import torch
 from datetime import datetime
 from models.DenoMamba.denomamba_arch import DenoMamba
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     with torch.no_grad():
         for batch_number, (sino, gt) in tqdm(enumerate(data)):
-            reconstruction = admm_ldct(originial_transform, originial_transform.adjoint, sino, 0.1, (362, 362), denoise_resolution=(512, 512), model=denoiser, num_iters=75)
+            reconstruction = admm_ldct(originial_transform, originial_transform.adjoint, sino, 0.1, (362, 362), denoise_resolution=(512, 512), model=denoiser, num_iters=50)
             _psnr = psnr(gt.numpy(), reconstruction)
             _ssim = ssim(gt.numpy(), reconstruction, data_range=np.max(gt.numpy()) - np.min(gt.numpy()))
             _rmse = rmse(gt.numpy(), reconstruction)
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 axes[0].imshow(reconstruction, cmap='gray')
                 axes[0].set_title('Reconstruction')
                 axes[0].axis('off')
-                psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\nRMSE:: {_rmse:.4f}"
+                psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\nRMSE: {_rmse:.4f}"
                 axes[0].text(
                     0.05, 0.05, psnr_ssim_text,
                     transform=axes[0].transAxes,
@@ -72,7 +72,8 @@ if __name__ == "__main__":
                 plt.tight_layout()
                 plt.savefig(output_path, dpi=300, bbox_inches='tight')
                 plt.close(fig)
-                plt.imsave(f"plots/admm_denomamba/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction)
+                breakpoint()
+                plt.imsave(f"plots/admm_denomamba/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction, cmap='gray')
     print(np.mean(psnrs))
     print(np.mean(ssims))
     print(np.mean(rmses))
