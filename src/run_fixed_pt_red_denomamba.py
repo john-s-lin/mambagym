@@ -91,7 +91,7 @@ if __name__ == "__main__":
                 plt.close(fig)
                 
                 plt.imsave(f"plots/fixed_point_denomamba_red/img_{batch_number}_reconstruction_{timestamp}.png", 
-                          reconstruction)
+                          reconstruction, cmap='gray')
                 
     print(f"Average PSNR: {np.mean(psnrs):.2f}")
     print(f"Average SSIM: {np.mean(ssims):.4f}")
