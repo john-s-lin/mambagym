@@ -168,3 +168,4 @@ examples/**/logs
 *.out
 *.pkl
 src/models/**/checkpoints
+DenoMamba/inference_output/

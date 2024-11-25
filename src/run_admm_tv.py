@@ -7,7 +7,7 @@ from skimage.metrics import normalized_root_mse as rmse
 import numpy as np
 from tqdm import tqdm
 from torch.utils.data import Subset
-from src.admm import admm_tv 
+from admm import admm_tv 
 import torch
 from datetime import datetime
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
             axes[0].imshow(reconstruction, cmap='gray')
             axes[0].set_title('Reconstruction')
             axes[0].axis('off')
-            psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\nRMSE:: {_rmse:.4f}"
+            psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\nRMSE: {_rmse:.4f}"
             axes[0].text(
                 0.05, 0.05, psnr_ssim_text,
                 transform=axes[0].transAxes,
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             plt.tight_layout()
             plt.savefig(output_path, dpi=300, bbox_inches='tight')
             plt.close(fig)
-            plt.imsave(f"plots/admm_tv/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction)
+            plt.imsave(f"plots/admm_tv/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction, cmap='gray')
     print(np.mean(psnrs))
     print(np.mean(ssims))
     print(np.mean(rmses))

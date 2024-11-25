@@ -10,7 +10,7 @@ from datetime import datetime
 import odl
 from torch.utils.data import Subset
 
-def sart(sinogram, ray_geometry, recon_space, n_iter=10, omega=100):
+def sart(sinogram, ray_geometry, recon_space, n_iter=10, omega=10):
     angles = ray_geometry.angles
     ray_transforms = [odl.tomo.RayTransform(reco_space, geometry[i:i+1])
               for i in range(len(angles))]
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             axes[0].imshow(reconstruction, cmap='gray')
             axes[0].set_title('Reconstruction')
             axes[0].axis('off')
-            psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\nRMSE:: {_rmse:.4f}"
+            psnr_ssim_text = f"PSNR: {_psnr:.2f} dB\nSSIM: {_ssim:.4f}\nRMSE: {_rmse:.4f}"
             axes[0].text(
                 0.05, 0.05, psnr_ssim_text,
                 transform=axes[0].transAxes,
@@ -61,7 +61,7 @@ if __name__ == "__main__":
             plt.tight_layout()
             plt.savefig(output_path, dpi=300, bbox_inches='tight')
             plt.close(fig)
-            plt.imsave(f"plots/sart/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction)
+            plt.imsave(f"plots/sart/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction, cmap='gray')
     print(np.mean(psnrs))
     print(np.mean(ssims))
     print(np.mean(rmses))
