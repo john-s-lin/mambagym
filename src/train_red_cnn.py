@@ -85,7 +85,7 @@ def main():
 
     latest_epoch = get_latest_checkpoint(checkpoint_dir=solver_args.save_path)
 
-    if latest_epoch >= solver_args.num_epochs:
+    if latest_epoch >= solver_args.num_epochs - 1:
         print(f"Found existing model at epoch {latest_epoch}. Loading checkpoint...")
         red_cnn_solver.load_model(latest_epoch)
     else:
