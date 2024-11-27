@@ -55,12 +55,12 @@ class Solver(object):
         self.criterion = nn.MSELoss()
         self.optimizer = optim.Adam(self.REDCNN.parameters(), self.lr)
 
-    def save_model(self, iter_):
-        f = os.path.join(self.save_path, "REDCNN_{}iter.ckpt".format(iter_))
+    def save_model(self, epoch: int):
+        f = os.path.join(self.save_path, f"REDCNN_{epoch}_epoch.ckpt")
         torch.save(self.REDCNN.state_dict(), f)
 
-    def load_model(self, iter_):
-        f = os.path.join(self.save_path, "REDCNN_{}iter.ckpt".format(iter_))
+    def load_model(self, epoch: int):
+        f = os.path.join(self.save_path, f"REDCNN_{epoch}_epoch.ckpt")
         if self.multi_gpu:
             state_d = OrderedDict()
             for k, v in torch.load(f):
@@ -107,15 +107,15 @@ class Solver(object):
         f.savefig(os.path.join(self.save_path, "fig", "result_{}.png".format(fig_name)))
         plt.close()
 
-    def train(self):
+    def train(self, last_epoch: int | None = None):
         train_losses = []
-        total_iters = 0
+        total_iter = 0
         start_time = time.time()
-        for epoch in range(1, self.num_epochs):
+        for epoch in range(last_epoch, self.num_epochs):
             self.REDCNN.train(True)
 
             for iter_, (x, y) in enumerate(self.data_loader):
-                total_iters += 1
+                total_iter += 1
 
                 # add 1 channel
                 x = x.unsqueeze(0).float().to(self.device)
@@ -135,10 +135,10 @@ class Solver(object):
                 train_losses.append(loss.item())
 
                 # print
-                if total_iters % self.print_iters == 0:
+                if total_iter % self.print_iters == 0:
                     print(
                         "STEP [{}], EPOCH [{}/{}], ITER [{}/{}] \nLOSS: {:.8f}, TIME: {:.1f}s".format(
-                            total_iters,
+                            total_iter,
                             epoch,
                             self.num_epochs,
                             iter_ + 1,
@@ -148,14 +148,12 @@ class Solver(object):
                         )
                     )
                 # learning rate decay
-                if total_iters % self.decay_iters == 0:
+                if total_iter % self.decay_iters == 0:
                     self.lr_decay()
-                # save model every 1000 iterations or when you reach the end
-                if total_iters % self.save_iters == 0 or total_iters == (self.num_epochs * len(self.data_loader)):
-                    self.save_model(total_iters)
-                    np.save(
-                        os.path.join(self.save_path, "loss_{}_iter.npy".format(total_iters)), np.array(train_losses)
-                    )
+
+            # save model every epoch or when you reach the end
+            self.save_model(epoch)
+            np.save(os.path.join(self.save_path, "loss_{}_epoch.npy".format(epoch)), np.array(train_losses))
 
     def test(self):
         del self.REDCNN

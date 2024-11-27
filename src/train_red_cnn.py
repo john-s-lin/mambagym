@@ -19,19 +19,19 @@ from models.red_cnn.solver import Solver
 
 
 def get_latest_checkpoint(checkpoint_dir: str) -> int:
-    pattern = r"REDCNN_(\d+)iter.ckpt"
-    latest_iter = 0
+    pattern = r"REDCNN_(\d+)_epoch.ckpt"
+    latest_epoch = 0
 
     for filename in os.listdir(checkpoint_dir):
         match_name = re.match(pattern, filename)
         if match_name:
-            iter_num = int(match_name.group(1))
-            latest_iter = max(latest_iter, iter_num)
+            epoch_num = int(match_name.group(1))
+            latest_epoch = max(latest_epoch, epoch_num)
 
-    if latest_iter == 0:
+    if latest_epoch == 0:
         print("Checkpoints directory is empty. No iterations found.")
 
-    return latest_iter
+    return latest_epoch
 
 
 def main():
@@ -83,21 +83,19 @@ def main():
 
     red_cnn_solver = Solver(solver_args, trainloader)
 
-    # Set min_iterations to 80% of length of trainloader * num_epochs
-    min_iterations = solver_args.num_epochs * 0.8 * len(trainloader)
+    latest_epoch = get_latest_checkpoint(checkpoint_dir=solver_args.save_path)
 
-    latest_iter = get_latest_checkpoint(checkpoint_dir=solver_args.save_path)
-
-    if latest_iter >= min_iterations:
-        print(f"Found existing model at iteration {latest_iter}. Loading checkpoint...")
-        red_cnn_solver.load_model(latest_iter)
+    if latest_epoch >= solver_args.num_epochs:
+        print(f"Found existing model at epoch {latest_epoch}. Loading checkpoint...")
+        red_cnn_solver.load_model(latest_epoch)
     else:
-        if latest_iter > 0:
-            print(f"Found partial training checkpoint at iteration {latest_iter}. Resuming training...")
-            red_cnn_solver.load_model(latest_iter)
+        if latest_epoch > 0:
+            print(f"Found partial training checkpoint at epoch {latest_epoch}. Resuming training...")
+            red_cnn_solver.load_model(latest_epoch)
+            red_cnn_solver.train(last_epoch=latest_epoch)
         else:
-            print("No existing checkpoints found. Starting training from 0...")
-        red_cnn_solver.train()
+            print("No existing checkpoints found. Starting training from epoch 0...")
+            red_cnn_solver.train()
 
     # Change the data_loader to validloader and test to validate
     print("Running validation...")
