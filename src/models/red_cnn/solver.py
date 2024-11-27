@@ -110,8 +110,9 @@ class Solver(object):
     def train(self, last_epoch: int | None = None):
         train_losses = []
         total_iter = 0
+        start_epoch = 0 if not last_epoch else last_epoch
         start_time = time.time()
-        for epoch in range(last_epoch, self.num_epochs):
+        for epoch in range(start_epoch, self.num_epochs):
             self.REDCNN.train(True)
 
             for iter_, (x, y) in enumerate(self.data_loader):
