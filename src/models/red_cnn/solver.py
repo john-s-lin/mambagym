@@ -150,8 +150,8 @@ class Solver(object):
                 # learning rate decay
                 if total_iters % self.decay_iters == 0:
                     self.lr_decay()
-                # save model
-                if total_iters % self.save_iters == 0:
+                # save model every 1000 iterations or when you reach the end
+                if total_iters % self.save_iters == 0 or total_iters == (self.num_epochs * len(self.data_loader)):
                     self.save_model(total_iters)
                     np.save(
                         os.path.join(self.save_path, "loss_{}_iter.npy".format(total_iters)), np.array(train_losses)
