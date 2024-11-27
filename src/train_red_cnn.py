@@ -18,29 +18,20 @@ from DenoMamba.options import TrainOptions
 from models.red_cnn.solver import Solver
 
 
-def get_latest_checkpoint(checkpoint_dir: str, min_iterations: int = None) -> tuple[bool, int | None, str | None]:
+def get_latest_checkpoint(checkpoint_dir: str) -> int:
     pattern = r"REDCNN_(\d+)iter.ckpt"
-    checkpoints = []
-
-    if not os.path.exists(checkpoint_dir):
-        return False, None, None
+    latest_iter = 0
 
     for filename in os.listdir(checkpoint_dir):
         match_name = re.match(pattern, filename)
         if match_name:
             iter_num = int(match_name.group(1))
-            checkpoints.append((iter_num, filename))
+            latest_iter = max(latest_iter, iter_num)
 
-    if not checkpoints:
-        return False, None, None
+    if latest_iter == 0:
+        print("Checkpoints directory is empty. No iterations found.")
 
-    latest_iter, latest_file = max(checkpoints, key=lambda x: x[0])
-    latest_path = os.path.join(checkpoint_dir, latest_file)
-
-    if min_iterations is not None and latest_iter < min_iterations:
-        return False, latest_iter, latest_path
-
-    return True, latest_iter, latest_path
+    return latest_iter
 
 
 def main():
@@ -92,21 +83,20 @@ def main():
 
     red_cnn_solver = Solver(solver_args, trainloader)
 
-    min_iterations = solver_args.num_epochs * len(trainloader)
+    # Set min_iterations to 80% of length of trainloader * num_epochs
+    min_iterations = solver_args.num_epochs * 0.8 * len(trainloader)
 
-    is_trained, latest_iter, latest_checkpoint = get_latest_checkpoint(
-        checkpoint_dir=solver_args.save_path, min_iterations=min_iterations
-    )
+    latest_iter = get_latest_checkpoint(checkpoint_dir=solver_args.save_path)
 
-    if is_trained:
+    if latest_iter >= min_iterations:
         print(f"Found existing model at iteration {latest_iter}. Loading checkpoint...")
         red_cnn_solver.load_model(latest_iter)
     else:
-        if latest_checkpoint:
+        if latest_iter > 0:
             print(f"Found partial training checkpoint at iteration {latest_iter}. Resuming training...")
             red_cnn_solver.load_model(latest_iter)
         else:
-            print("No existing checkpoints found. Starting training from scratch...")
+            print("No existing checkpoints found. Starting training from 0...")
         red_cnn_solver.train()
 
     # Change the data_loader to validloader and test to validate
