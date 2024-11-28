@@ -162,6 +162,8 @@ class Solver(object):
             np.save(os.path.join(self.save_path, "loss_{}_epoch.npy".format(epoch)), np.array(train_losses))
 
     def test(self):
+        del self.REDCNN
+        # load
         self.REDCNN = RED_CNN().to(self.device)
         self.load_model(self.test_epochs)
         self.REDCNN.eval()
@@ -171,21 +173,17 @@ class Solver(object):
         pred_psnr_avg, pred_ssim_avg, pred_rmse_avg = 0, 0, 0
 
         with torch.no_grad():
-            for i, (data, target) in enumerate(self.data_loader):
-                condition = data.to(self.device)
-                raw_prediction = self.REDCNN(condition)
+            for i, (x, y) in enumerate(self.data_loader):
+                shape_ = x.shape[-1]
+                x = x.float().to(self.device)
+                y = y.float().to(self.device)
 
-                prediction = raw_prediction.data.squeeze().cpu().detach()
-                img = target[0].data.squeeze().cpu().detach()
+                pred = self.REDCNN(x)
 
-                # Convert to numpy
-                # x = prediction.view(shape_, shape_).cpu().detach()
-                # y = y.view(shape_, shape_).cpu().detach()
-                # pred = pred.view(shape_, shape_).cpu().detach()
 
                 data_range = self.trunc_max - self.trunc_min
 
-                original_result, pred_result = compute_measure(condition, img, prediction, data_range)
+                original_result, pred_result = compute_measure(x, y, pred, data_range)
                 ori_psnr_avg += original_result[0]
                 ori_ssim_avg += original_result[1]
                 ori_rmse_avg += original_result[2]
@@ -195,7 +193,7 @@ class Solver(object):
 
                 # save result figure
                 if self.result_fig:
-                    self.save_fig(condition, img, prediction, i, original_result, pred_result)
+                    self.save_fig(x, y, pred, i, original_result, pred_result)
 
                 printProgressBar(
                     i, len(self.data_loader), prefix="Compute measurements ..", suffix="Complete", length=25
