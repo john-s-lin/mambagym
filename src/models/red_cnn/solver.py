@@ -34,13 +34,14 @@ class Solver(object):
         self.trunc_max = args.trunc_max
 
         self.save_path = args.save_path
+        self.save_fig_path = args.save_fig_path
         self.multi_gpu = args.multi_gpu
 
         self.num_epochs = args.num_epochs
         self.print_iters = args.print_iters
         self.decay_iters = args.decay_iters
         self.save_iters = args.save_iters
-        self.test_iters = args.test_iters
+        self.test_epochs = args.test_epochs
         self.result_fig = args.result_fig
 
         self.patch_size = args.patch_size
@@ -52,7 +53,7 @@ class Solver(object):
         self.REDCNN.to(self.device)
 
         self.lr = args.lr
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.functional.l1_loss
         self.optimizer = optim.Adam(self.REDCNN.parameters(), self.lr)
 
     def save_model(self, epoch: int):
@@ -85,6 +86,10 @@ class Solver(object):
         return mat
 
     def save_fig(self, x, y, pred, fig_name, original_result, pred_result):
+        if not os.path.exists(self.save_fig_path):
+            os.makedirs(self.save_fig_path)
+            print(f"Create path : {self.save_fig_path}")
+
         x, y, pred = x.numpy(), y.numpy(), pred.numpy()
         f, ax = plt.subplots(1, 3, figsize=(30, 10))
         ax[0].imshow(x, cmap=plt.cm.gray, vmin=self.trunc_min, vmax=self.trunc_max)
@@ -104,7 +109,7 @@ class Solver(object):
         ax[2].imshow(y, cmap=plt.cm.gray, vmin=self.trunc_min, vmax=self.trunc_max)
         ax[2].set_title("Full-dose", fontsize=30)
 
-        f.savefig(os.path.join(self.save_path, "fig", "result_{}.png".format(fig_name)))
+        f.savefig(os.path.join(self.save_fig_path, "result_{}.png".format(fig_name)))
         plt.close()
 
     def train(self, last_epoch: int | None = None):
@@ -157,31 +162,30 @@ class Solver(object):
             np.save(os.path.join(self.save_path, "loss_{}_epoch.npy".format(epoch)), np.array(train_losses))
 
     def test(self):
-        del self.REDCNN
-        # load
         self.REDCNN = RED_CNN().to(self.device)
-        self.load_model(self.test_iters)
+        self.load_model(self.test_epochs)
+        self.REDCNN.eval()
 
         # compute PSNR, SSIM, RMSE
         ori_psnr_avg, ori_ssim_avg, ori_rmse_avg = 0, 0, 0
         pred_psnr_avg, pred_ssim_avg, pred_rmse_avg = 0, 0, 0
 
         with torch.no_grad():
-            for i, (x, y) in enumerate(self.data_loader):
-                shape_ = x.shape[-1]
-                x = x.unsqueeze(0).float().to(self.device)
-                y = y.unsqueeze(0).float().to(self.device)
+            for i, (data, target) in enumerate(self.data_loader):
+                condition = data.to(self.device)
+                raw_prediction = self.REDCNN(condition)
 
-                pred = self.REDCNN(x)
+                prediction = raw_prediction.data.squeeze().cpu().detach()
+                img = target[0].data.squeeze().cpu().detach()
 
-                # denormalize, truncate
-                x = self.trunc(self.denormalize_(x.view(shape_, shape_).cpu().detach()))
-                y = self.trunc(self.denormalize_(y.view(shape_, shape_).cpu().detach()))
-                pred = self.trunc(self.denormalize_(pred.view(shape_, shape_).cpu().detach()))
+                # Convert to numpy
+                # x = prediction.view(shape_, shape_).cpu().detach()
+                # y = y.view(shape_, shape_).cpu().detach()
+                # pred = pred.view(shape_, shape_).cpu().detach()
 
                 data_range = self.trunc_max - self.trunc_min
 
-                original_result, pred_result = compute_measure(x, y, pred, data_range)
+                original_result, pred_result = compute_measure(condition, img, prediction, data_range)
                 ori_psnr_avg += original_result[0]
                 ori_ssim_avg += original_result[1]
                 ori_rmse_avg += original_result[2]
@@ -191,7 +195,7 @@ class Solver(object):
 
                 # save result figure
                 if self.result_fig:
-                    self.save_fig(x, y, pred, i, original_result, pred_result)
+                    self.save_fig(condition, img, prediction, i, original_result, pred_result)
 
                 printProgressBar(
                     i, len(self.data_loader), prefix="Compute measurements ..", suffix="Complete", length=25
