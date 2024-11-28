@@ -11,6 +11,7 @@ import torch
 from datetime import datetime
 from fixed_point import fixed_point_ldct_red
 from models.DenoMamba.denomamba_arch import DenoMamba
+import os
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -32,6 +33,8 @@ if __name__ == "__main__":
     data = dataset.create_torch_dataset(part='train')
     data = Subset(data, indices=range(200))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    SIGMA = 3
+    LAM = 0.1
 
     original_transform = dataset.ray_trafo
     reco_space = original_transform.domain
@@ -50,8 +53,8 @@ if __name__ == "__main__":
                 original_transform, 
                 original_transform.adjoint,
                 sino,
-                sigma=0.1,
-                lam=0.1,
+                sigma=SIGMA,
+                lam=LAM,
                 image_resolution=(362, 362),
                 denoise_resolution=(512, 512),
                 model=denoiser,
@@ -97,6 +100,10 @@ if __name__ == "__main__":
     print(f"Average SSIM: {np.mean(ssims):.4f}")
     print(f"Average RMSE: {np.mean(rmses):.4f}")
     
-    np.save(f"plots/fixed_point_denomamba_red/psnrs_{timestamp}.npy", np.array(psnrs))
-    np.save(f"plots/fixed_point_denomamba_red/ssims_{timestamp}.npy", np.array(ssims))
-    np.save(f"plots/fixed_point_denomamba_red/rmses_{timestamp}.npy", np.array(rmses))
+    new_dir = f"fixed_point_denomamba_red_sigma_{SIGMA}"
+    new_path = os.path.join('plots', new_dir)
+    if not os.path.exists(new_path):
+        os.makedirs(new_path)
+    np.save(f"plots/fixed_point_denomamba_red_sigma_{SIGMA}/psnrs_{timestamp}.npy", np.array(psnrs))
+    np.save(f"plots/fixed_point_denomamba_red_sigma_{SIGMA}/ssims_{timestamp}.npy", np.array(ssims))
+    np.save(f"plots/fixed_point_denomamba_red_sigma_{SIGMA}/rmses_{timestamp}.npy", np.array(rmses))
