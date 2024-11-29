@@ -10,8 +10,6 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def admm_ldct_p3(forward, adjoint, sino, rho, imageResolution, denoise_resolution, model, num_iters=75):
-
-    # initialize x,z,u with all zeros
     x = np.zeros(imageResolution)
     z = np.zeros(imageResolution)
     u = np.zeros(imageResolution)
@@ -21,15 +19,12 @@ def admm_ldct_p3(forward, adjoint, sino, rho, imageResolution, denoise_resolutio
 
     with torch.no_grad():
         for it in tqdm(range(num_iters)):
-            # x update using cg solver
             v = z-u
             cg_iters = 25           # number of iterations for CG solver
             cg_tolerance = 1e-12    # convergence tolerance of cg solver
 
             def a_tilde(u_flat):
-                # Reshape the flat input vector to 2D image
                 u_reshaped = u_flat.reshape(imageResolution)
-                # Apply the Afun and Atfun operators, then flatten the result
                 result = adjoint(forward(u_reshaped)) + rho * u_reshaped
                 return result.asarray().flatten()
             
@@ -39,9 +34,8 @@ def admm_ldct_p3(forward, adjoint, sino, rho, imageResolution, denoise_resolutio
 
             x_flat, _ = cg(a_tilde_op, b_tilde_flat, rtol=cg_tolerance, maxiter=cg_iters)
             x = x_flat.reshape(imageResolution)
-            ################# end task 3 ###################################
 
-            # z-update using DnCNN denoiser
+            # z-update using denoiser
             v = x+u
             input_min, input_max = v.min(), v.max()
             normalized_input = (v - input_min) / (input_max - input_min + 1e-8)
@@ -61,8 +55,6 @@ def admm_ldct_p3(forward, adjoint, sino, rho, imageResolution, denoise_resolutio
     return x
 
 def admm_ldct_red(forward, adjoint, sino, rho, lam, imageResolution, denoise_resolution, model, num_iters=50, num_denoise_steps=5):
-
-    # initialize x,z,u with all zeros
     x = np.zeros(imageResolution)
     z = np.zeros(imageResolution)
     u = np.zeros(imageResolution)
@@ -78,9 +70,7 @@ def admm_ldct_red(forward, adjoint, sino, rho, lam, imageResolution, denoise_res
             cg_tolerance = 1e-12    # convergence tolerance of cg solver
 
             def a_tilde(u_flat):
-                # Reshape the flat input vector to 2D image
                 u_reshaped = u_flat.reshape(imageResolution)
-                # Apply the Afun and Atfun operators, then flatten the result
                 result = adjoint(forward(u_reshaped)) + rho * u_reshaped
                 return result.asarray().flatten()
             
@@ -90,7 +80,6 @@ def admm_ldct_red(forward, adjoint, sino, rho, lam, imageResolution, denoise_res
 
             x_flat, _ = cg(a_tilde_op, b_tilde_flat, rtol=cg_tolerance, maxiter=cg_iters)
             x = x_flat.reshape(imageResolution)
-            ################# end task 3 ###################################
 
             v = x+u
             input_min, input_max = v.min(), v.max()
@@ -99,6 +88,7 @@ def admm_ldct_red(forward, adjoint, sino, rho, lam, imageResolution, denoise_res
             padding = ((0, denoise_resolution[0] - v.shape[0]), (0, denoise_resolution[0] - v.shape[1]))
             v_padded = torch.nn.functional.pad(v_tensor, (0, padding[1][1], 0, padding[0][1]))
 
+            # z-update using denoiser + fixed point iteration
             v_opt = v_padded
             for _ in range(num_denoise_steps):
                 v_denoised = model(v_opt)
@@ -109,48 +99,6 @@ def admm_ldct_red(forward, adjoint, sino, rho, lam, imageResolution, denoise_res
 
             # u update
             u = u+x-z
-
-    return x
-
-
-def admm_ldct_notorch(forward, adjoint, sino, rho, imageResolution, model, num_iters=75):
-
-    # initialize x,z,u with all zeros
-    x = np.zeros(imageResolution)
-    z = np.zeros(imageResolution)
-    u = np.zeros(imageResolution)
-    
-    img_size = np.prod(imageResolution)
-
-    for it in tqdm(range(num_iters)):
-        # x update using cg solver
-        v = z-u
-        cg_iters = 25           # number of iterations for CG solver
-        cg_tolerance = 1e-12    # convergence tolerance of cg solver
-
-        def a_tilde(u_flat):
-            # Reshape the flat input vector to 2D image
-            u_reshaped = u_flat.reshape(imageResolution)
-            # Apply the Afun and Atfun operators, then flatten the result
-            result = adjoint(forward(u_reshaped)) + rho * u_reshaped
-            return result.asarray().flatten()
-        
-        b_tilde = adjoint(sino) + rho*v
-        b_tilde_flat = b_tilde.asarray().flatten()
-        a_tilde_op = LinearOperator((img_size, img_size), a_tilde)
-
-        x_flat, _ = cg(a_tilde_op, b_tilde_flat, rtol=cg_tolerance, maxiter=cg_iters)
-        x = x_flat.reshape(imageResolution)
-        ################# end task 3 ###################################
-
-        # z-update using DnCNN denoiser
-        v = x+u
-        v_denoised = model(v)
-        z = v_denoised
-        plt.imsave("test4.png", v)
-        plt.imsave("test5.png", v_denoised)
-        # u update
-        u = u+x-z
 
     return x
 
@@ -172,10 +120,10 @@ def admm_tv(forward, adjoint, sino, lam, rho, imageResolution, num_iters=75):
     Returns:
         x: Reconstructed image as a NumPy array.
     """
-    # Initialize x, z, and u with zeros
     x = np.zeros(imageResolution)
-    z = np.zeros((*imageResolution, 2))  # z stores (z_x, z_y) gradients
-    u = np.zeros((*imageResolution, 2))  # u stores dual variables for (z_x, z_y)
+    # Need to store vertical and horizontal gradients
+    z = np.zeros((*imageResolution, 2))
+    u = np.zeros((*imageResolution, 2))
     
     img_size = np.prod(imageResolution)
 
@@ -192,14 +140,12 @@ def admm_tv(forward, adjoint, sino, lam, rho, imageResolution, num_iters=75):
         dy_roll = np.roll(dy, 1, axis=0)
         return dx_roll - dx + dy_roll - dy
 
-    # Iterative ADMM process
     for it in tqdm(range(num_iters), desc="ADMM Iterations"):
-        # Step 1: x-update using Conjugate Gradient (CG) solver
+        # x-update using Conjugate Gradient (CG) solver
         v = z - u
         cg_iters = 25           # Number of CG iterations
         cg_tolerance = 1e-12    # Convergence tolerance for CG solver
 
-        # Define the A_tilde operator for the linear system
         def a_tilde(u_flat):
             u_reshaped = u_flat.reshape(imageResolution)
             result = adjoint(forward(u_reshaped)) + rho * u_reshaped
@@ -213,12 +159,12 @@ def admm_tv(forward, adjoint, sino, lam, rho, imageResolution, num_iters=75):
         x_flat, _ = cg(a_tilde_op, b_tilde_flat, rtol=cg_tolerance, maxiter=cg_iters)
         x = x_flat.reshape(imageResolution)
 
-        # Step 2: z-update using anisotropic TV minimization
+        # z-update using anisotropic TV minimization
         kappa = lam/rho
         v = gradient(x) + u
         z = np.maximum(0, 1 - kappa / (np.abs(v) + 1e-8)) * v
 
-        # Step 3: u-update (dual variable update)
+        # u-update
         u = u + gradient(x) - z
 
     return x
@@ -253,6 +199,8 @@ def admm_poisson(forward, adjoint, sino, rho, imageResolution, denoise_resolutio
         Returns:
             Scalar objective value.
         """
+
+        # TODO: This doesn't converge, find out why
         Px = forward(x).asarray().flatten() 
         log_term = -np.sum(b.flatten() * np.log(Px + 1e-8))
         linear_term = np.sum(Px)

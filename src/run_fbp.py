@@ -13,8 +13,8 @@ from datetime import datetime
 if __name__ == "__main__":
     # Load dataset
     dataset = dival.datasets.get_standard_dataset('lodopab')
-    data = dataset.create_torch_dataset(part='train')
-    data = Subset(data, indices=range(200))
+    data = dataset.create_torch_dataset(part='test')
+    data = Subset(data, indices=range(1000))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Obtain the ray transform and the FBP reconstruction operator
@@ -36,8 +36,8 @@ if __name__ == "__main__":
         ssims.append(_ssim)
         rmses.append(_rmse)
 
-        # Save visualizations every 10 batches
-        if batch_number % 10 == 0:
+        # Save visualizations every 100 batches
+        if batch_number % 100 == 0:
             fig, axes = plt.subplots(1, 2, figsize=(10, 5))
             axes[0].imshow(reconstruction, cmap='gray')
             axes[0].set_title('Reconstruction')
@@ -52,16 +52,16 @@ if __name__ == "__main__":
             axes[1].imshow(gt.numpy(), cmap='gray')
             axes[1].set_title('Ground Truth')
             axes[1].axis('off')
-            output_path = f"plots/fbp/img_{batch_number}_comparison_{timestamp}.png"
+            output_path = f"/h/245/yukthiw/fbp_1000/img_{batch_number}_comparison_{timestamp}.png"
             plt.tight_layout()
             plt.savefig(output_path, dpi=300, bbox_inches='tight')
             plt.close(fig)
-            plt.imsave(f"plots/fbp/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction, cmap='gray')
+            plt.imsave(f"/h/245/yukthiw/fbp_1000/img_{batch_number}_reconstruction_{timestamp}.png", reconstruction, cmap='gray')
 
     # Compute and save overall metrics
     print(np.mean(psnrs))
     print(np.mean(ssims))
     print(np.mean(rmses))
-    np.save(f"plots/fbp/psnrs_{timestamp}.npy", np.array(psnrs))
-    np.save(f"plots/fbp/ssims_{timestamp}.npy", np.array(ssims))
-    np.save(f"plots/fbp/rmses_{timestamp}.npy", np.array(rmses))
+    np.save(f"/h/245/yukthiw/fbp_1000/psnrs_{timestamp}.npy", np.array(psnrs))
+    np.save(f"/h/245/yukthiw/fbp_1000/ssims_{timestamp}.npy", np.array(ssims))
+    np.save(f"/h/245/yukthiw/fbp_1000/rmses_{timestamp}.npy", np.array(rmses))
