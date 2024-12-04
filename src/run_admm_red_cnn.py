@@ -76,6 +76,7 @@ def init_red_cnn(checkpoint_dir: str) -> Solver:
         trunc_min=-160.0,
         trunc_max=240.0,
         save_path=checkpoint_dir,
+        save_fig_path=PLOT_SAVE_PATH,
         multi_gpu=False,
         num_epochs=100,
         print_iters=20,
