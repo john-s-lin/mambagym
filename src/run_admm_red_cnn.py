@@ -105,7 +105,7 @@ def main():
 
     dataset = dival.datasets.get_standard_dataset("lodopab")
     data = dataset.create_torch_dataset("train")
-    data = Subset(data, indices=range(200))
+    data = Subset(data, indices=range(1000))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     original_transform = dataset.ray_trafo
