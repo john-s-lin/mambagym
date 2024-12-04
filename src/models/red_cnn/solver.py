@@ -181,9 +181,9 @@ class Solver(object):
                 pred = self.REDCNN(x)
 
                 # denormalize, truncate
-                x = x.view(shape_, shape_).cpu().detach()
-                y = y.view(shape_, shape_).cpu().detach()
-                pred = pred.view(shape_, shape_).cpu().detach()
+                x = self.trunc(self.denormalize_(x.view(shape_, shape_).cpu().detach()))
+                y = self.trunc(self.denormalize_(y.view(shape_, shape_).cpu().detach()))
+                pred = self.trunc(self.denormalize_(pred.view(shape_, shape_).cpu().detach()))
 
                 data_range = self.trunc_max - self.trunc_min
 
