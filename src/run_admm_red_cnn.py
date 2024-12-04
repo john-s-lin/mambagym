@@ -68,7 +68,7 @@ def init_red_cnn(checkpoint_dir: str) -> Solver:
     # From models/red_cnn/main.py, using the defaults
     # See src/train_red_cnn.py
     solver_args = argparse.Namespace(
-        mode="train",
+        mode="test",
         load_mode=1,
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
         norm_range_min=-1024.0,
@@ -82,7 +82,7 @@ def init_red_cnn(checkpoint_dir: str) -> Solver:
         print_iters=20,
         decay_iters=3000,
         save_iters=1000,
-        test_iters=1000,
+        test_epochs=99,
         result_fig=True,
         patch_size=64,
         lr=1e-5,
