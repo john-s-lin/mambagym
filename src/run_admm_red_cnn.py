@@ -92,7 +92,7 @@ def init_red_cnn(checkpoint_dir: str) -> Solver:
     # so don't need to use the data_loader as you did for training and validation
     model = Solver(solver_args, data_loader=None)
 
-    _, latest_iter = find_latest_checkpoint(checkpoint_dir=checkpoint_dir, pattern=r"REDCNN_(\d+)iter.ckpt")
+    _, latest_iter = find_latest_checkpoint(checkpoint_dir=checkpoint_dir, pattern=r"REDCNN_(\d+)_epoch.ckpt")
     model.load_model(latest_iter)
 
     return model
