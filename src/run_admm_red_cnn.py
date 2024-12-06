@@ -68,7 +68,7 @@ def init_red_cnn(checkpoint_dir: str) -> Solver:
     # From models/red_cnn/main.py, using the defaults
     # See src/train_red_cnn.py
     solver_args = argparse.Namespace(
-        mode="train",
+        mode="test",
         load_mode=1,
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
         norm_range_min=-1024.0,
@@ -76,12 +76,13 @@ def init_red_cnn(checkpoint_dir: str) -> Solver:
         trunc_min=-160.0,
         trunc_max=240.0,
         save_path=checkpoint_dir,
+        save_fig_path=PLOT_SAVE_PATH,
         multi_gpu=False,
         num_epochs=100,
         print_iters=20,
         decay_iters=3000,
         save_iters=1000,
-        test_iters=1000,
+        test_epochs=99,
         result_fig=True,
         patch_size=64,
         lr=1e-5,
@@ -91,7 +92,7 @@ def init_red_cnn(checkpoint_dir: str) -> Solver:
     # so don't need to use the data_loader as you did for training and validation
     model = Solver(solver_args, data_loader=None)
 
-    _, latest_iter = find_latest_checkpoint(checkpoint_dir=checkpoint_dir, pattern=r"REDCNN_(\d+)iter.ckpt")
+    _, latest_iter = find_latest_checkpoint(checkpoint_dir=checkpoint_dir, pattern=r"REDCNN_(\d+)_epoch.ckpt")
     model.load_model(latest_iter)
 
     return model
@@ -105,7 +106,7 @@ def main():
 
     dataset = dival.datasets.get_standard_dataset("lodopab")
     data = dataset.create_torch_dataset("train")
-    data = Subset(data, indices=range(200))
+    data = Subset(data, indices=range(1000))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     original_transform = dataset.ray_trafo
@@ -122,9 +123,9 @@ def main():
                 original_transform,
                 original_transform.adjoint,
                 sino,
-                0.1,
-                0.1,
-                (362, 362),
+                rho=1,
+                lam=0.1,
+                imageResolution=(362, 362),
                 denoise_resolution=(512, 512),
                 model=red_cnn_model.REDCNN,
                 num_iters=50,

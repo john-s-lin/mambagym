@@ -34,13 +34,14 @@ class Solver(object):
         self.trunc_max = args.trunc_max
 
         self.save_path = args.save_path
+        self.save_fig_path = args.save_fig_path
         self.multi_gpu = args.multi_gpu
 
         self.num_epochs = args.num_epochs
         self.print_iters = args.print_iters
         self.decay_iters = args.decay_iters
         self.save_iters = args.save_iters
-        self.test_iters = args.test_iters
+        self.test_epochs = args.test_epochs
         self.result_fig = args.result_fig
 
         self.patch_size = args.patch_size
@@ -52,15 +53,15 @@ class Solver(object):
         self.REDCNN.to(self.device)
 
         self.lr = args.lr
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.functional.l1_loss
         self.optimizer = optim.Adam(self.REDCNN.parameters(), self.lr)
 
-    def save_model(self, iter_):
-        f = os.path.join(self.save_path, "REDCNN_{}iter.ckpt".format(iter_))
+    def save_model(self, epoch: int):
+        f = os.path.join(self.save_path, f"REDCNN_{epoch}_epoch.ckpt")
         torch.save(self.REDCNN.state_dict(), f)
 
-    def load_model(self, iter_):
-        f = os.path.join(self.save_path, "REDCNN_{}iter.ckpt".format(iter_))
+    def load_model(self, epoch: int):
+        f = os.path.join(self.save_path, f"REDCNN_{epoch}_epoch.ckpt")
         if self.multi_gpu:
             state_d = OrderedDict()
             for k, v in torch.load(f):
@@ -85,6 +86,10 @@ class Solver(object):
         return mat
 
     def save_fig(self, x, y, pred, fig_name, original_result, pred_result):
+        if not os.path.exists(self.save_fig_path):
+            os.makedirs(self.save_fig_path)
+            print(f"Create path : {self.save_fig_path}")
+
         x, y, pred = x.numpy(), y.numpy(), pred.numpy()
         f, ax = plt.subplots(1, 3, figsize=(30, 10))
         ax[0].imshow(x, cmap=plt.cm.gray, vmin=self.trunc_min, vmax=self.trunc_max)
@@ -104,18 +109,19 @@ class Solver(object):
         ax[2].imshow(y, cmap=plt.cm.gray, vmin=self.trunc_min, vmax=self.trunc_max)
         ax[2].set_title("Full-dose", fontsize=30)
 
-        f.savefig(os.path.join(self.save_path, "fig", "result_{}.png".format(fig_name)))
+        f.savefig(os.path.join(self.save_fig_path, "result_{}.png".format(fig_name)))
         plt.close()
 
-    def train(self):
+    def train(self, last_epoch: int | None = None):
         train_losses = []
-        total_iters = 0
+        total_iter = 0
+        start_epoch = 0 if not last_epoch else last_epoch
         start_time = time.time()
-        for epoch in range(1, self.num_epochs):
+        for epoch in range(start_epoch, self.num_epochs):
             self.REDCNN.train(True)
 
             for iter_, (x, y) in enumerate(self.data_loader):
-                total_iters += 1
+                total_iter += 1
 
                 # add 1 channel
                 x = x.unsqueeze(0).float().to(self.device)
@@ -135,10 +141,10 @@ class Solver(object):
                 train_losses.append(loss.item())
 
                 # print
-                if total_iters % self.print_iters == 0:
+                if total_iter % self.print_iters == 0:
                     print(
                         "STEP [{}], EPOCH [{}/{}], ITER [{}/{}] \nLOSS: {:.8f}, TIME: {:.1f}s".format(
-                            total_iters,
+                            total_iter,
                             epoch,
                             self.num_epochs,
                             iter_ + 1,
@@ -148,20 +154,19 @@ class Solver(object):
                         )
                     )
                 # learning rate decay
-                if total_iters % self.decay_iters == 0:
+                if total_iter % self.decay_iters == 0:
                     self.lr_decay()
-                # save model
-                if total_iters % self.save_iters == 0:
-                    self.save_model(total_iters)
-                    np.save(
-                        os.path.join(self.save_path, "loss_{}_iter.npy".format(total_iters)), np.array(train_losses)
-                    )
+
+            # save model every epoch or when you reach the end
+            self.save_model(epoch)
+            np.save(os.path.join(self.save_path, "loss_{}_epoch.npy".format(epoch)), np.array(train_losses))
 
     def test(self):
         del self.REDCNN
         # load
         self.REDCNN = RED_CNN().to(self.device)
-        self.load_model(self.test_iters)
+        self.load_model(self.test_epochs)
+        self.REDCNN.eval()
 
         # compute PSNR, SSIM, RMSE
         ori_psnr_avg, ori_ssim_avg, ori_rmse_avg = 0, 0, 0
@@ -170,8 +175,8 @@ class Solver(object):
         with torch.no_grad():
             for i, (x, y) in enumerate(self.data_loader):
                 shape_ = x.shape[-1]
-                x = x.unsqueeze(0).float().to(self.device)
-                y = y.unsqueeze(0).float().to(self.device)
+                x = x.float().to(self.device)
+                y = y.float().to(self.device)
 
                 pred = self.REDCNN(x)
 
