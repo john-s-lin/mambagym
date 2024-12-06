@@ -123,13 +123,13 @@ def main():
                 original_transform,
                 original_transform.adjoint,
                 sino,
-                rho=1,
+                sigma=1,
                 lam=0.1,
-                imageResolution=(362, 362),
+                image_resolution=(362, 362),
                 denoise_resolution=(512, 512),
                 model=red_cnn_model.REDCNN,
                 num_iters=50,
-                num_denoise_steps=5,
+                inner_iters=25,
             )
             _psnr = psnr(gt.numpy(), reconstruction)
             _ssim = ssim(gt.numpy(), reconstruction, data_range=np.max(gt.numpy()) - np.min(gt.numpy()))
