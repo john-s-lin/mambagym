@@ -11,6 +11,7 @@ import torch
 from datetime import datetime
 from fixed_point import fixed_point_ldct_red
 from models.DenoMamba.denomamba_arch import DenoMamba
+import os
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -28,10 +29,19 @@ def init_deno_mamba(weights_path, in_ch=1, out_ch=1, dim=48, num_blocks=(4, 6, 6
     return model
 
 if __name__ == "__main__":
+    SIGMA_SQ = 0.3
+    LAM = 0.5
+    N_EXAMPLES = 1000
+
     dataset = dival.datasets.get_standard_dataset('lodopab')
-    data = dataset.create_torch_dataset(part='train')
-    data = Subset(data, indices=range(200))
+    data = dataset.create_torch_dataset(part='test')
+    data = Subset(data, indices=range(N_EXAMPLES))
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    new_dir = f"fixed_point_denomamba_red_test_{N_EXAMPLES}_sigma_{SIGMA_SQ}_lam_{LAM}"
+    new_path = os.path.join('plots', new_dir)
+    if not os.path.exists(new_path):
+        os.makedirs(new_path)
 
     original_transform = dataset.ray_trafo
     reco_space = original_transform.domain
@@ -50,8 +60,8 @@ if __name__ == "__main__":
                 original_transform, 
                 original_transform.adjoint,
                 sino,
-                sigma=0.1,
-                lam=0.1,
+                sigma_sq=SIGMA_SQ,
+                lam=LAM,
                 image_resolution=(362, 362),
                 denoise_resolution=(512, 512),
                 model=denoiser,
@@ -67,7 +77,7 @@ if __name__ == "__main__":
             ssims.append(_ssim)
             rmses.append(_rmse)
             
-            if batch_number % 10 == 0:
+            if batch_number % 100 == 0:
                 fig, axes = plt.subplots(1, 2, figsize=(10, 5))
                 axes[0].imshow(reconstruction, cmap='gray')
                 axes[0].set_title('Reconstruction')
@@ -85,18 +95,20 @@ if __name__ == "__main__":
                 axes[1].set_title('Ground Truth')
                 axes[1].axis('off')
                 
-                output_path = f"plots/fixed_point_denomamba_red/img_{batch_number}_comparison_{timestamp}.png"
+                output_path = os.path.join(new_path, f"img_{batch_number}_comparison_{timestamp}.png")
                 plt.tight_layout()
                 plt.savefig(output_path, dpi=300, bbox_inches='tight')
                 plt.close(fig)
                 
-                plt.imsave(f"plots/fixed_point_denomamba_red/img_{batch_number}_reconstruction_{timestamp}.png", 
+                plt.imsave(os.path.join(new_path, f"img_{batch_number}_reconstruction_{timestamp}.png"), 
                           reconstruction, cmap='gray')
                 
+    print(f"Fixed-point iteration + DenoMamba")
+    print(f"SIGMA = {SIGMA_SQ}, LAMBDA = {LAM}")
     print(f"Average PSNR: {np.mean(psnrs):.2f}")
     print(f"Average SSIM: {np.mean(ssims):.4f}")
     print(f"Average RMSE: {np.mean(rmses):.4f}")
     
-    np.save(f"plots/fixed_point_denomamba_red/psnrs_{timestamp}.npy", np.array(psnrs))
-    np.save(f"plots/fixed_point_denomamba_red/ssims_{timestamp}.npy", np.array(ssims))
-    np.save(f"plots/fixed_point_denomamba_red/rmses_{timestamp}.npy", np.array(rmses))
+    np.save(os.path.join(new_path, f"psnrs_{timestamp}.npy"), np.array(psnrs))
+    np.save(os.path.join(new_path, f"ssims_{timestamp}.npy"), np.array(ssims))
+    np.save(os.path.join(new_path, f"rmses_{timestamp}.npy"), np.array(rmses))
