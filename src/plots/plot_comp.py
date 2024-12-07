@@ -6,8 +6,6 @@ import cv2
 
 def get_metrics_from_npy(folder_path, img_index):
     try:
-        # Load the npy files
-
         data_dict = {}
         npy_count = 0
         for filename in os.listdir(folder_path):
