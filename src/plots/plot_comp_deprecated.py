@@ -1,46 +1,36 @@
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import os
+import re
+from PIL import Image
+from pytesseract import pytesseract
 import numpy as np
 import cv2
 
-def get_metrics_from_npy(folder_path, img_index):
-    try:
-        # Load the npy files
-
-        data_dict = {}
-        npy_count = 0
-        for filename in os.listdir(folder_path):
-            if filename.endswith('.npy'):
-                file_path = os.path.join(folder_path, filename)
-                
-                if filename.startswith('psnrs'):
-                    data_dict['psnrs'] = np.load(file_path)
-                elif filename.startswith('ssims'):
-                    data_dict['ssims'] = np.load(file_path)
-                elif filename.startswith('rmses'):
-                    data_dict['rmses'] = np.load(file_path)
-
-                npy_count += 1
-
-        assert(npy_count == 3)
-        
-        psnr = data_dict['psnrs'][img_index]
-        ssim = data_dict['ssims'][img_index]
-        rmse = data_dict['rmses'][img_index]
-        
-        return f"PSNR: {psnr:.2f} dB\nSSIM: {ssim:.4f}\nRMSE: {rmse:.4f}"
+def extract_metrics(text):
+    psnr_pattern = r'PSNR: (\d+\.\d+)'
+    ssim_pattern = r'SSIM: (\d+\.\d+)'
+    rmse_pattern = r'RMSE: (\d+\.\d+)'
     
-    except FileNotFoundError:
-        raise ValueError(f"Missing required npy files in {folder_path}")
+    try:
+        psnr = float(re.search(psnr_pattern, text).group(1))
+        ssim = float(re.search(ssim_pattern, text).group(1))
+        rmse = float(re.search(rmse_pattern, text).group(1))
+        return f"PSNR: {psnr:.2f} dB\nSSIM: {ssim:.4f}\nRMSE: {rmse:.4f}"
+    except (AttributeError, ValueError):
+        raise ValueError("Could not extract metrics from the text")
+
+def extract_text_from_image(image_path):
+    try:
+        img = Image.open(image_path)
+        text = pytesseract.image_to_string(img)
+        return text
     except Exception as e:
-        raise ValueError(f"Error processing npy files in {folder_path}: {str(e)}")
+        raise ValueError(f"Error extracting text from image {image_path}: {str(e)}")
 
 def find_image_pairs(base_path, img_index):
-    """Find comparison and reconstruction image pairs for a given index."""
     pairs = {}
     
-    # Dictionary mapping algorithm names to their folder names
     folders = {
         "Fixed-Point + RED-CNN": "fixed_point_red_cnn",
         "ADMM + RED-CNN": "admm_red_cnn",
@@ -56,22 +46,20 @@ def find_image_pairs(base_path, img_index):
         folder_path = os.path.join(base_path, folder)
         if not os.path.exists(folder_path):
             raise ValueError(f"Folder not found: {folder}")
-        
-        all_files = os.listdir(folder_path)
-        comparison_files = [f for f in all_files if '_comparison_' in f and f.endswith('.png')]
-        reconstruction_files = [f for f in all_files if '_reconstruction_' in f and f.endswith('.png')]
-        
-        num_pairs = len(comparison_files)
-        if num_pairs == 0:
-            raise ValueError(f"No image pairs found in {folder}")
             
-        comparison_file = [f for f in comparison_files if f.startswith(f"img_{img_index}_comparison_")][0]
-        reconstruction_file = [f for f in reconstruction_files if f.startswith(f"img_{img_index}_reconstruction_")][0]
+        all_files = os.listdir(folder_path)
+        comparison_files = [f for f in all_files if f.startswith(f"img_{img_index}_comparison_")]
+        reconstruction_files = [f for f in all_files if f.startswith(f"img_{img_index}_reconstruction_")]
+        
+        if not comparison_files or not reconstruction_files:
+            raise ValueError(f"Missing required images for index {img_index} in {folder}")
+            
+        comparison_file = sorted(comparison_files)[-1]
+        reconstruction_file = sorted(reconstruction_files)[-1]
         
         pairs[display_name] = {
-            "folder_path": folder_path,
-            "reconstruction": os.path.join(folder_path, reconstruction_file),
-            "comparison": os.path.join(folder_path, comparison_file)
+            "comparison": os.path.join(folder_path, comparison_file),
+            "reconstruction": os.path.join(folder_path, reconstruction_file)
         }
     
     return pairs
@@ -125,27 +113,23 @@ def extract_right_image(input_path, output_path="ground_truth.png"):
     
     final_img = content_img[start_y:start_y+square_size, start_x:start_x+square_size]
     
+    # cv2.imwrite(output_path, final_img)
+    
     return final_img
 
 def create_comparison_diagram(base_path, img_index, output_filename='algo_comp_diagram.png'):
     image_pairs = find_image_pairs(base_path, img_index)
     
     images = {}
-    got_ground_truth = False
-    comp_img_path = None
     for name, paths in image_pairs.items():
         try:
-            metrics = get_metrics_from_npy(paths["folder_path"], img_index)
+            comparison_text = extract_text_from_image(paths["comparison"])
+            metrics = extract_metrics(comparison_text)
             
             images[name] = {
                 "path": paths["reconstruction"],
                 "metrics": metrics
             }
-
-            if not got_ground_truth:
-                comp_img_path = paths["comparison"]
-                got_ground_truth = True
-
         except Exception as e:
             print(f"Warning: Failed to process {name}: {str(e)}")
             continue
@@ -153,12 +137,9 @@ def create_comparison_diagram(base_path, img_index, output_filename='algo_comp_d
     if not images:
         raise ValueError("No valid images were processed")
     
-    if not comp_img_path:
-        raise ValueError("Comparison image not processed properly")
-    
     _, axes = plt.subplots(3, 3, figsize=(16, 16))
     axes = axes.flatten()
-    gt_img = extract_right_image(comp_img_path) # get the ground truth image
+    gt_img = plt.imread('gt_img.png')
     axes[0].imshow(gt_img, cmap='gray')
     axes[0].axis('off')
     axes[0].set_title("Ground Truth", fontsize=10, pad=5, weight='bold')
@@ -179,15 +160,15 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description='Create comparison diagram for reconstruction algorithms')
-    parser.add_argument('index', type=int, help='Image index to process')
-    parser.add_argument('--path', type=str, default='./', help='Base path containing algorithm folders')
+    parser.add_argument('img_index', type=int, help='Image index to process')
+    parser.add_argument('--path', type=str, default="./", help='Base path containing algorithm folders')
     parser.add_argument('--output', type=str, default='algo_comp_diagram.png', 
                       help='Output filename (default: algo_comp_diagram.png)')
     
     args = parser.parse_args()
     
     try:
-        create_comparison_diagram(args.path, args.index, args.output)
+        create_comparison_diagram(args.path, args.img_index, args.output)
         print(f"Successfully created comparison diagram: {args.output}")
     except Exception as e:
         print(f"Error: {e}")
