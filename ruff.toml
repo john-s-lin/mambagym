@@ -1,5 +1,0 @@
-line-length = 120
-
-[lint]
-exclude = ["DenoMamba/*"]
-extend-ignore = ["E203"]
