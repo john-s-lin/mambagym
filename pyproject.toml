@@ -5,3 +5,6 @@ description = "Comparing denomamba-jax and denomamba-torch against RED-CNN for l
 authors = [ "john-s-lin" ]
 requires-python = ">=3.13"
 dependencies = []
+
+[dependency-groups]
+dev = []

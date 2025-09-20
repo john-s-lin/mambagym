@@ -22,6 +22,8 @@
             packages = [
               pkgs.python3
               pkgs.uv
+              pkgs.ty
+              pkgs.ruff
             ];
 
             shellHook = ''
