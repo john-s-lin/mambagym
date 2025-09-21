@@ -24,14 +24,6 @@
               pkgs.uv
               pkgs.ty
               pkgs.ruff
-              pkgs.nodejs # Add Node.js for language servers
-              pkgs.nix-ld # Add the nix-ld compatibility layer
-            ];
-
-            NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
-              pkgs.glibc
-              pkgs.zlib
-              pkgs.stdenv.cc.cc.lib
             ];
 
             shellHook = ''
