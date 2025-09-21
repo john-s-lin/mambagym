@@ -1,16 +1,10 @@
 import argparse
+import requests
 
+DATASET_FULL = "https://www.kaggle.com/api/v1/datasets/download/andrewmvd/ct-low-dose-reconstruction"
 
 def main():
     parser = argparse.ArgumentParser(description="Downloads training and test data")
-    parser.add_argument("--input", "-i", required=True)
-    parser.add_argument(
-        "--dataset",
-        "-d",
-        choices=["full", "small"],
-        default="full",
-        help="Dataset size (default: full)",
-    )
     parser.add_argument("--output", "-o")
     args = parser.parse_args()
 

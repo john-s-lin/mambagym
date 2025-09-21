@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Comparing denomamba-jax and denomamba-torch against RED-CNN for low-dose CT."
 authors = [ "john-s-lin" ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "requests>=2.32.5",
+]
 
 [dependency-groups]
 dev = []
