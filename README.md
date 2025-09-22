@@ -17,3 +17,7 @@ conda activate mambagym
 ## Running on high-performance clusters with `slurm`
 
 For info on how to run Python training or inference scripts on slurm, refer to [`/docs/slurm.md`](./docs/slurm.md).
+
+### GPU Environment
+
+The available GPUs on the Slurm cluster run CUDA 12.9. Ensure your JAX/PyTorch installations are compatible (e.g., via `pip install jax[cuda12_pip]` for JAX).
