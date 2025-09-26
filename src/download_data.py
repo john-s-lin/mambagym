@@ -14,6 +14,12 @@ logging.basicConfig(level=getattr(logging, log_level.upper()))
 
 
 def unzip(content: io.BytesIO, target_dir: Path | str) -> None:
+    """Extracts a ZIP file from BytesIO to the target directory.
+
+    Args:
+        content (io.BytesIO): The ZIP file content as a BytesIO object.
+        target_dir (Path | str): The directory path to extract the ZIP contents to.
+    """
     try:
         logging.info(f"Extracting ZIP file to '{target_dir}/'")
         with zipfile.ZipFile(content, "r") as z:
@@ -23,6 +29,11 @@ def unzip(content: io.BytesIO, target_dir: Path | str) -> None:
 
 
 def main():
+    """Downloads training and test data from the specified URL to the output directory.
+
+    This function parses command-line arguments for input URL and output directory,
+    downloads the dataset, and extracts it to the specified location.
+    """
     parser = argparse.ArgumentParser(description="Downloads training and test data")
     parser.add_argument("-i", "--input", default=DATASET_FULL, type=str)
     parser.add_argument("-o", "--output", default="data", type=str)
