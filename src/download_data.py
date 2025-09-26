@@ -1,10 +1,10 @@
 import argparse
 import io
 import logging
-from functools import partial
 import multiprocessing as mp
 import os
 import zipfile
+from functools import partial
 from pathlib import Path
 
 import requests
