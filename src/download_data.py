@@ -23,7 +23,13 @@ def unzip(content: io.BytesIO, target_dir: Path | str) -> None:
     try:
         logging.info(f"Extracting ZIP file to '{target_dir}/'")
         with zipfile.ZipFile(content, "r") as z:
-            z.extractall(path=target_dir)
+            file_list = z.namelist()
+            total_files = len(file_list)
+            logging.info(f"Total files to extract: {total_files}")
+            for i, file in enumerate(file_list, 1):
+                logging.debug(f"Extracting {file} ({i}/{total_files})")
+                z.extract(file, path=target_dir)
+            logging.info("Extraction completed.")
     except zipfile.BadZipFile as e:
         logging.error(f"Error processing ZIP file: {e}")
 
