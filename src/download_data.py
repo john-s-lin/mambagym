@@ -1,6 +1,8 @@
 import argparse
 import io
 import logging
+from functools import partial
+import multiprocessing as mp
 import os
 import zipfile
 from pathlib import Path
@@ -11,6 +13,17 @@ DATASET_FULL = "https://www.kaggle.com/api/v1/datasets/download/andrewmvd/ct-low
 
 log_level = os.environ.get("LOG_LEVEL", "INFO")
 logging.basicConfig(level=getattr(logging, log_level.upper()))
+
+
+def extract_single(z: zipfile.ZipFile, target_dir: Path | str, file: str) -> None:
+    """Extracts a single file from a ZIP archive to the target directory.
+
+    Args:
+        z (zipfile.ZipFile): The ZIP file object to extract from.
+        target_dir (Path | str): The directory path to extract the file to.
+        file (str): The name of the file within the ZIP archive to extract.
+    """
+    z.extract(file, path=target_dir)
 
 
 def unzip(content: io.BytesIO, target_dir: Path | str) -> None:
@@ -26,9 +39,11 @@ def unzip(content: io.BytesIO, target_dir: Path | str) -> None:
             file_list = z.namelist()
             total_files = len(file_list)
             logging.info(f"Total files to extract: {total_files}")
-            for i, file in enumerate(file_list, 1):
-                logging.debug(f"Extracting {file} ({i}/{total_files})")
-                z.extract(file, path=target_dir)
+
+            num_processes = min(mp.cpu_count(), total_files)
+            with mp.Pool(num_processes) as pool:
+                extract_func = partial(extract_single, z, target_dir)
+                pool.map(extract_func, file_list)
             logging.info("Extraction completed.")
     except zipfile.BadZipFile as e:
         logging.error(f"Error processing ZIP file: {e}")
