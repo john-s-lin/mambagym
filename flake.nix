@@ -20,7 +20,7 @@
         {
           default = pkgs.mkShell {
             packages = [
-              pkgs.python3
+              pkgs.python314
               pkgs.uv
               pkgs.ty
               pkgs.ruff
