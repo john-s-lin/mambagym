@@ -3,7 +3,7 @@ name = "mambagym"
 version = "0.1.0"
 description = "Comparing denomamba-jax and denomamba-torch against RED-CNN for low-dose CT."
 authors = [ "john-s-lin" ]
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "requests>=2.32.5",
 ]
